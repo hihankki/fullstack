@@ -1,25 +1,34 @@
-import { useState } from 'react';
-import { SimpleInput } from './SimpleInput';
-import { SimpleButton } from './SimpleButton';
+import { useState } from "react";
+import { SimpleInput } from "./SimpleInput";
+import { SimpleButton } from "./SimpleButton";
 
 type RegisterFormProps = {
-  onRegister: () => void;
+  onRegister: (username: string, password: string, fullName: string) => void;
+  loading?: boolean;
+  error?: string | null;
 };
 
-export function RegisterForm({ onRegister }: RegisterFormProps) {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+export function RegisterForm({
+  onRegister,
+  loading,
+  error,
+}: RegisterFormProps) {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState(""); // username
+  const [password, setPassword] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onRegister();
+    onRegister(email, password, name);
   };
 
   return (
     <div className="max-w-md mx-auto">
       <div className="bg-white rounded-lg p-8 shadow-sm border border-[#c5d9c5]">
         <h2 className="text-center mb-6">Регистрация</h2>
+
+        {error && <p className="mb-4 text-sm text-red-500">{error}</p>}
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block mb-2">Имя</label>
@@ -32,9 +41,9 @@ export function RegisterForm({ onRegister }: RegisterFormProps) {
             />
           </div>
           <div>
-            <label className="block mb-2">Email</label>
+            <label className="block mb-2">Логин (username / email)</label>
             <SimpleInput
-              type="email"
+              type="text"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -51,8 +60,12 @@ export function RegisterForm({ onRegister }: RegisterFormProps) {
               className="w-full"
             />
           </div>
-          <SimpleButton type="submit" className="w-full">
-            Зарегистрироваться
+          <SimpleButton
+            type="submit"
+            className="w-full"
+            disabled={loading}
+          >
+            {loading ? "Регистрируем..." : "Зарегистрироваться"}
           </SimpleButton>
         </form>
       </div>

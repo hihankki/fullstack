@@ -1,37 +1,60 @@
+import { useState } from 'react';
 import { ReviewCard } from './ReviewCard';
+import { ReviewModal } from './ReviewModal';
+import type { Review } from '../types';
 
-const mockReviews = [
-  {
-    id: 1,
-    author: 'Ева БрА',
-    rating: 5,
-    date: 'давно 3 недели',
-    text: 'Очень понравилось обслуживание! Все вежливые и внимательные. Рекомендую!',
-  },
-  {
-    id: 2,
-    author: 'Иван Петров',
-    rating: 4,
-    date: 'давно 1 день',
-    text: 'Хорошее место, качественный сервис. Единственный минус - долгое ожидание.',
-  },
-  {
-    id: 3,
-    author: 'Мария С.',
-    rating: 5,
-    date: 'давно 2 дня',
-    text: 'Отличный опыт! Все на высшем уровне. Обязательно вернусь снова.',
-  },
-];
+type RecentReviewsProps = {
+  reviews: Review[];
+};
 
-export function RecentReviews() {
+const categories = ['Все', 'Ресторан', 'Услуги', 'Магазин', 'Отель', 'Развлечения'];
+
+export function RecentReviews({ reviews }: RecentReviewsProps) {
+  const [selectedCategory, setSelectedCategory] = useState('Все');
+  const [selectedReview, setSelectedReview] = useState<Review | null>(null);
+
+  const filteredReviews = selectedCategory === 'Все' 
+    ? reviews 
+    : reviews.filter(review => review.category === selectedCategory);
+
   return (
     <div className="max-w-3xl mx-auto">
-      <div className="space-y-6">
-        {mockReviews.map((review) => (
-          <ReviewCard key={review.id} {...review} />
+      <h2 className="mb-6">Последние отзывы</h2>
+      
+      <div className="mb-6 flex flex-wrap gap-2">
+        {categories.map((category) => (
+          <button
+            key={category}
+            onClick={() => setSelectedCategory(category)}
+            className={`px-4 py-2 rounded-full transition-colors ${
+              selectedCategory === category
+                ? 'bg-[#7fb87f] text-white'
+                : 'bg-white border border-[#c5d9c5] hover:bg-[#f0f5f0]'
+            }`}
+          >
+            {category}
+          </button>
         ))}
       </div>
+
+      <div className="space-y-6">
+        {filteredReviews.length > 0 ? (
+          filteredReviews.map((review) => (
+            <ReviewCard 
+              key={review.id} 
+              {...review}
+              onClick={() => setSelectedReview(review)}
+            />
+          ))
+        ) : (
+          <p className="text-center text-gray-500">Нет отзывов в этой категории</p>
+        )}
+      </div>
+      
+      <ReviewModal 
+        review={selectedReview} 
+        onClose={() => setSelectedReview(null)} 
+      />
     </div>
   );
 }

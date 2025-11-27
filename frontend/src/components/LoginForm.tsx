@@ -1,29 +1,34 @@
-import { useState } from 'react';
-import { SimpleInput } from './SimpleInput';
-import { SimpleButton } from './SimpleButton';
+import { useState } from "react";
+import { SimpleInput } from "./SimpleInput";
+import { SimpleButton } from "./SimpleButton";
 
 type LoginFormProps = {
-  onLogin: () => void;
+  onLogin: (username: string, password: string) => void;
+  loading?: boolean;
+  error?: string | null;
 };
 
-export function LoginForm({ onLogin }: LoginFormProps) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+export function LoginForm({ onLogin, loading, error }: LoginFormProps) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onLogin();
+    onLogin(email, password); // email используем как username
   };
 
   return (
     <div className="max-w-md mx-auto">
       <div className="bg-white rounded-lg p-8 shadow-sm border border-[#c5d9c5]">
         <h2 className="text-center mb-6">Вход</h2>
+
+        {error && <p className="mb-4 text-sm text-red-500">{error}</p>}
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block mb-2">Email</label>
+            <label className="block mb-2">Логин (username / email)</label>
             <SimpleInput
-              type="email"
+              type="text"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -40,8 +45,12 @@ export function LoginForm({ onLogin }: LoginFormProps) {
               className="w-full"
             />
           </div>
-          <SimpleButton type="submit" className="w-full">
-            Войти
+          <SimpleButton
+            type="submit"
+            className="w-full"
+            disabled={loading}
+          >
+            {loading ? "Входим..." : "Войти"}
           </SimpleButton>
         </form>
       </div>
