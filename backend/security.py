@@ -1,67 +1,49 @@
-from datetime import datetime, timedelta
-from typing import Optional
+from __future__ import annotations
 
+from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from jose import JWTError, jwt
-from passlib.context import CryptContext
-from pydantic import BaseModel
+from jose import JWTError
 
-from db import users_db
+from repositories.users_repo import UsersRepository
+from token_utils import decode_access_token
 
-SECRET_KEY = "super-secret-key-change-me"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# используем pbkdf2_sha256, чтобы не мучиться с bcrypt на Windows
-pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
-
-# важный URL – именно сюда ходит Swagger, когда ты нажимаешь Authorize
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
+# ✅ singleton репозиторий прямо тут, чтобы не было deps.py -> security.py -> deps.py
+_users_repo_singleton = UsersRepository()
 
-class TokenData(BaseModel):
-    username: Optional[str] = None
 
-
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+def get_users_repo() -> UsersRepository:
+    return _users_repo_singleton
 
 
 def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
-    to_encode = data.copy()
-    expire = datetime.utcnow() + (
-        expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    )
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return pwd_context.verify(plain_password, hashed_password)
 
 
-def get_current_user(token: str = Depends(oauth2_scheme)) -> dict:
-    """
-    Читает JWT из Authorization: Bearer <token> и возвращает объект пользователя из users_db.
-    """
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Не удалось подтвердить учетные данные",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-
+async def get_current_user(
+    token: str = Depends(oauth2_scheme),
+    users_repo: UsersRepository = Depends(get_users_repo),
+) -> dict:
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
-            raise credentials_exception
+        payload = decode_access_token(token)
+        username = payload.get("sub")
+        if not username:
+            raise HTTPException(status_code=401, detail="Invalid token")
     except JWTError:
-        raise credentials_exception
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Токен недействителен или истёк",
+        )
 
-    user = users_db.get(username)
-    if user is None:
-        raise credentials_exception
-
+    user = users_repo.get_by_username(username)
+    if not user:
+        raise HTTPException(status_code=401, detail="Пользователь не найден")
     return user

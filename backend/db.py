@@ -1,10 +1,44 @@
-from typing import Dict, List, Optional
+from __future__ import annotations
+
+import json
 from datetime import datetime
+from pathlib import Path
+from typing import Dict, List, Optional
 
 from schemas import ReviewOut, ReviewCreate, ReviewUpdate
 
-# Пользователи: username -> {username, hashed_password, role}
+# ---------- USERS (persist to json) ----------
+
+USERS_FILE = Path(__file__).resolve().parent / "users.json"
+
+# Пользователи: username -> {username, hashed_password, role, display_name}
 users_db: Dict[str, dict] = {}
+
+
+def load_users() -> None:
+    global users_db
+    if USERS_FILE.exists():
+        try:
+            data = json.loads(USERS_FILE.read_text(encoding="utf-8"))
+            # гарантируем формат dict[str, dict]
+            if isinstance(data, dict):
+                users_db = data
+        except Exception:
+            # если файл битый — начинаем с пустого
+            users_db = {}
+
+
+def save_users() -> None:
+    USERS_FILE.write_text(
+        json.dumps(users_db, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
+
+# загружаем пользователей при импорте модуля
+load_users()
+
+# ---------- REVIEWS (in-memory) ----------
 
 # Отзывы: id -> ReviewOut
 reviews_db: Dict[int, ReviewOut] = {}
@@ -20,6 +54,7 @@ def _get_next_review_id() -> int:
 def create_review(data: ReviewCreate, author: str) -> ReviewOut:
     new_id = _get_next_review_id()
     now = datetime.utcnow()
+
     review = ReviewOut(
         id=new_id,
         title=data.title,

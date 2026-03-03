@@ -2,27 +2,35 @@ import type { Page } from "../types";
 
 type HeaderProps = {
   isLoggedIn: boolean;
-  onNavigate: (page: Page) => void;
+  isAdmin: boolean;
+  onNavigate: (page: Page | "admin") => void;
   onLogout: () => void;
 };
 
-export function Header({ isLoggedIn, onNavigate, onLogout }: HeaderProps) {
+export function Header({ isLoggedIn, isAdmin, onNavigate, onLogout }: HeaderProps) {
   return (
-    <header className="bg-[#d4e5d4] border-b border-[#a8c5a8] py-4">
-      <div className="container mx-auto px-4 flex justify-between items-center">
+    <header className="w-full border-b border-[#c5d9c5] bg-white">
+      <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
         <button
           onClick={() => onNavigate("recent")}
-          className="italic tracking-wide"
+          className="italic tracking-wide text-lg"
         >
           GENTLECOMMENT
         </button>
 
-        <div className="flex items-center gap-3">
+        <nav className="flex items-center gap-2">
           <button
             onClick={() => onNavigate("recent")}
             className="px-3 py-2 text-sm rounded-lg hover:bg-[#b9d0b9] transition-colors"
           >
             Последние отзывы
+          </button>
+
+          <button
+            onClick={() => onNavigate("search")}
+            className="px-3 py-2 text-sm rounded-lg hover:bg-[#b9d0b9] transition-colors"
+          >
+            Поиск
           </button>
 
           {isLoggedIn ? (
@@ -33,15 +41,26 @@ export function Header({ isLoggedIn, onNavigate, onLogout }: HeaderProps) {
               >
                 Мои отзывы
               </button>
+
               <button
                 onClick={() => onNavigate("create")}
                 className="px-3 py-2 text-sm rounded-lg bg-[#7fb87f] text-white hover:bg-[#6ba66b] transition-colors"
               >
                 Написать отзыв
               </button>
+
+              {isAdmin && (
+                <button
+                  onClick={() => onNavigate("admin")}
+                  className="px-3 py-2 text-sm rounded-lg hover:bg-[#b9d0b9] transition-colors"
+                >
+                  Админка
+                </button>
+              )}
+
               <button
                 onClick={onLogout}
-                className="px-3 py-2 text-sm rounded-lg hover:bg-red-100 text-red-600 transition-colors"
+                className="px-3 py-2 text-sm rounded-lg hover:bg-[#b9d0b9] transition-colors"
               >
                 Выйти
               </button>
@@ -62,7 +81,7 @@ export function Header({ isLoggedIn, onNavigate, onLogout }: HeaderProps) {
               </button>
             </>
           )}
-        </div>
+        </nav>
       </div>
     </header>
   );

@@ -1,0 +1,14 @@
+{
+  "admin": {
+    "username": "admin",
+    "hashed_password": "$2b$12$fxiX7svq1QpfGS2sONEb1u2rcaTCd8Kj85LkKdoeUNnEWA5szg1Wi",
+    "role": "admin",
+    "display_name": "iurhfug"
+  },
+  "fgsgdfbbdf": {
+    "username": "fgsgdfbbdf",
+    "hashed_password": "$2b$12$jSGFnCuzC06sv5PUircV1.LtYBPDixpzWw0ronQRqHO2V4WWI7SN6",
+    "role": "user",
+    "display_name": "gsdgefggfdgdf"
+  }
+}
