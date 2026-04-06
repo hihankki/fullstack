@@ -110,5 +110,13 @@
     "revoked": false,
     "created_at": "2026-03-16T14:24:08.569903",
     "replaced_by": null
+  },
+  "f9e83c99772f278e1491ee3e4a7d708f6a448cc677e7b5548b7d2b49d4a2c2f9": {
+    "token_hash": "f9e83c99772f278e1491ee3e4a7d708f6a448cc677e7b5548b7d2b49d4a2c2f9",
+    "username": "123456",
+    "expires_at": "2026-04-13T10:08:23.234908",
+    "revoked": false,
+    "created_at": "2026-04-06T10:08:23.234908",
+    "replaced_by": null
   }
 }

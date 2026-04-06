@@ -16,5 +16,11 @@
     "hashed_password": "$2b$12$fIoX9A.Vv50rOuRRkJ.hHuzNtJjaMw2dFN1N4a0e6rCHMD2uhmira",
     "role": "user",
     "display_name": "автмолвам"
+  },
+  "123456": {
+    "username": "123456",
+    "hashed_password": "$2b$12$A/G5Bzv9Hvb0o8XwVNaTy.oYuZveIvTDL/z4T4aHq6d/szUiPdLd2",
+    "role": "user",
+    "display_name": "kfv rfv rf"
   }
 }

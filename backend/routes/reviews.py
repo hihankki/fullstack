@@ -1,4 +1,5 @@
-from typing import List
+from typing import List, Optional
+from fastapi import Query
 
 from fastapi import APIRouter, HTTPException, status, Depends
 
@@ -22,16 +23,48 @@ async def get_reviews():
     return list_reviews()
 
 
-@router.get("/{review_id}", response_model=ReviewOut)
-async def get_review_by_id(review_id: int):
-    """Один отзыв (публичный)."""
-    review = get_review(review_id)
-    if not review:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Отзыв с id={review_id} не найден",
-        )
-    return review
+@router.get("/", response_model=dict)
+async def get_reviews(
+    q: Optional[str] = None,                      # поиск
+    rating: Optional[int] = Query(None, ge=1, le=5),  # фильтр
+    sort_by: str = "id",                          # сортировка
+    order: str = "desc",
+    page: int = 1,                                # пагинация
+    limit: int = 10,
+):
+    data = list_reviews()
+
+    # 🔍 ПОИСК (по тексту или автору)
+    if q:
+        q_lower = q.lower()
+        data = [
+            r for r in data
+            if q_lower in r.text.lower()
+            or q_lower in r.author.lower()
+        ]
+
+    # ⭐ ФИЛЬТР
+    if rating:
+        data = [r for r in data if r.rating == rating]
+
+    # 🔽 СОРТИРОВКА
+    reverse = order == "desc"
+    try:
+        data = sorted(data, key=lambda x: getattr(x, sort_by), reverse=reverse)
+    except Exception:
+        pass  # если поле не существует
+
+    # 📄 ПАГИНАЦИЯ
+    total = len(data)
+    start = (page - 1) * limit
+    end = start + limit
+
+    return {
+        "items": data[start:end],
+        "total": total,
+        "page": page,
+        "pages": (total + limit - 1) // limit,
+    }
 
 
 @router.post("/", response_model=ReviewOut, status_code=status.HTTP_201_CREATED)

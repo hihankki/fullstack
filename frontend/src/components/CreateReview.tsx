@@ -9,7 +9,8 @@ type CreateReviewProps = {
     rating: number,
     title: string,
     text: string,
-    category: string
+    category: string,
+    file?: File | null
   ) => void;
   loading?: boolean;
   error?: string | null;
@@ -26,15 +27,36 @@ export function CreateReview({
   const [title, setTitle] = useState("");
   const [text, setText] = useState("");
   const [category, setCategory] = useState(categories[0]);
+  const [file, setFile] = useState<File | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (rating === 0) {
       alert("Пожалуйста, выберите оценку");
       return;
     }
+
     if (loading) return;
-    onCreateReview(rating, title, text, category);
+
+    // 🔥 если есть файл — сначала загружаем
+    if (file) {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      try {
+        await fetch("http://127.0.0.1:8000/api/files/upload", {
+          method: "POST",
+          body: formData,
+        });
+      } catch (err) {
+        alert("Ошибка загрузки файла");
+        return;
+      }
+    }
+
+    // затем создаём отзыв
+    onCreateReview(rating, title, text, category, file);
   };
 
   return (
@@ -45,6 +67,7 @@ export function CreateReview({
         {error && <p className="mb-4 text-sm text-red-500">{error}</p>}
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* КАТЕГОРИЯ */}
           <div>
             <label className="block mb-3">Категория</label>
             <div className="flex flex-wrap gap-2">
@@ -65,6 +88,7 @@ export function CreateReview({
             </div>
           </div>
 
+          {/* ОЦЕНКА */}
           <div>
             <label className="block mb-3">Оценка</label>
             <div className="flex gap-2">
@@ -87,8 +111,9 @@ export function CreateReview({
             </div>
           </div>
 
+          {/* НАЗВАНИЕ */}
           <div>
-            <label className="block mb-3">Название (о чем отзыв)</label>
+            <label className="block mb-3">Название</label>
             <SimpleInput
               type="text"
               value={title}
@@ -99,6 +124,7 @@ export function CreateReview({
             />
           </div>
 
+          {/* ТЕКСТ */}
           <div>
             <label className="block mb-3">Текст отзыва</label>
             <SimpleTextarea
@@ -110,6 +136,17 @@ export function CreateReview({
             />
           </div>
 
+          {/* 🔥 ФАЙЛ */}
+          <div>
+            <label className="block mb-2">Прикрепить файл</label>
+            <input
+              type="file"
+              onChange={(e) => setFile(e.target.files?.[0] || null)}
+              className="w-full"
+            />
+          </div>
+
+          {/* КНОПКА */}
           <SimpleButton type="submit" className="w-full" disabled={loading}>
             {loading ? "Сохраняем..." : "Опубликовать отзыв"}
           </SimpleButton>

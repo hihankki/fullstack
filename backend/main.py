@@ -4,7 +4,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from routes import auth, reviews
 from routes import admin as admin_routes
 
+from routes import files
+
+
+
 app = FastAPI(title="MVP API (Access+Refresh)")
+
+app.include_router(files.router, prefix="/api/files", tags=["files"])
 
 app.add_middleware(
     CORSMiddleware,
