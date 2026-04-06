@@ -10,5 +10,11 @@
     "hashed_password": "$2b$12$jSGFnCuzC06sv5PUircV1.LtYBPDixpzWw0ronQRqHO2V4WWI7SN6",
     "role": "user",
     "display_name": "gsdgefggfdgdf"
+  },
+  "йцуке": {
+    "username": "йцуке",
+    "hashed_password": "$2b$12$fIoX9A.Vv50rOuRRkJ.hHuzNtJjaMw2dFN1N4a0e6rCHMD2uhmira",
+    "role": "user",
+    "display_name": "автмолвам"
   }
 }

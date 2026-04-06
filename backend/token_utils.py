@@ -7,7 +7,6 @@ from typing import Any, Optional
 
 from jose import JWTError, jwt
 
-# ВАЖНО: для лабы достаточно, но на проде секрет должен быть из env
 SECRET_KEY = "CHANGE_ME_SUPER_SECRET_KEY"
 ALGORITHM = "HS256"
 

@@ -12,7 +12,6 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
-# ✅ singleton репозиторий прямо тут, чтобы не было deps.py -> security.py -> deps.py
 _users_repo_singleton = UsersRepository()
 
 
