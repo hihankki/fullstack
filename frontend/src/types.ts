@@ -25,3 +25,13 @@ export type Review = {
   isUserReview?: boolean;
   files?: ReviewFile[];
 };
+
+export type ExternalImage = {
+  category: string;
+  image_url: string | null;
+  thumb_url: string | null;
+  alt: string;
+  author_name: string | null;
+  author_url: string | null;
+  source: string;
+};

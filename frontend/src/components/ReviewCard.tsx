@@ -1,7 +1,8 @@
-// frontend/src/components/ReviewCard.tsx
+import { Link } from "react-router-dom";
 import { Star, Trash } from "./Icons";
 
 type ReviewCardProps = {
+  id: number;
   author: string;
   rating: number;
   date: string;
@@ -20,6 +21,7 @@ function truncateText(text: string, maxLength: number) {
 }
 
 export function ReviewCard({
+  id,
   author,
   rating,
   date,
@@ -31,7 +33,7 @@ export function ReviewCard({
   onClick,
 }: ReviewCardProps) {
   return (
-    <div
+    <article
       className="bg-white rounded-xl shadow-sm border border-[#c5d9c5] p-6 cursor-pointer"
       onClick={onClick}
     >
@@ -40,7 +42,7 @@ export function ReviewCard({
           <span className="inline-block px-4 py-1 rounded-full bg-[#edf5ed] text-sm text-gray-700">
             {category}
           </span>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1" aria-label={`Оценка ${rating} из 5`}>
             {Array.from({ length: 5 }).map((_, index) => (
               <Star
                 key={index}
@@ -72,14 +74,25 @@ export function ReviewCard({
         </div>
       </div>
 
-      <h3 className="mb-2 font-semibold">{title}</h3>
+      <header className="mb-2">
+        <h2 className="font-semibold text-lg">
+          <Link
+            to={`/reviews/${id}`}
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+            className="hover:underline"
+          >
+            {title}
+          </Link>
+        </h2>
+      </header>
 
-      {/* Один нормальный <p> с переносами длинных слов */}
       <p className="text-gray-700 mb-2 whitespace-pre-wrap break-words break-all">
         {truncateText(text, 200)}
       </p>
 
-      <p className="text-gray-600">- {author}</p>
-    </div>
+      <footer className="text-gray-600">— {author}</footer>
+    </article>
   );
 }

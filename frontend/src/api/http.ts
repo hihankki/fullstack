@@ -10,6 +10,10 @@ export function getApiUrl() {
   return API_URL;
 }
 
+export function getFrontendUrl() {
+  return window.location.origin;
+}
+
 async function refreshAccessToken(): Promise<string | null> {
   const res = await fetch(`${API_URL}/api/auth/refresh`, {
     method: "POST",

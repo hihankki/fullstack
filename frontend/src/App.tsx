@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
 
 import { Header } from "./components/Header";
 import { RecentReviews } from "./components/RecentReviews";
@@ -10,10 +11,12 @@ import { CreateReview } from "./components/CreateReview";
 import { SearchReview } from "./components/SearchReview";
 import { RequireAuth, RequireRole } from "./components/RequireAuth";
 import { AdminUsers } from "./pages/AdminUsers";
+import { ReviewDetails } from "./pages/ReviewDetails";
+import { SeoHead } from "./seo/SeoHead";
 
 import type { Review, Page } from "./types";
 import { useAuth } from "./auth/AuthContext";
-import { apiFetch, getApiUrl } from "./api/http";
+import { apiFetch, getApiUrl, getFrontendUrl } from "./api/http";
 
 type Role = "guest" | "user" | "admin";
 
@@ -40,6 +43,20 @@ function pageToPath(page: Page | "admin"): string {
   }
 }
 
+function mapReview(r: any): Review {
+  return {
+    id: r.id,
+    author: r.author,
+    rating: r.rating,
+    date: new Date(r.created_at).toLocaleString("ru-RU"),
+    title: r.title,
+    text: r.content,
+    category: r.category,
+    isUserReview: false,
+    files: r.files || [],
+  };
+}
+
 export default function App() {
   const navigate = useNavigate();
   const { isLoggedIn, role, fullName, login, logout, loading } = useAuth();
@@ -56,18 +73,6 @@ export default function App() {
   const [createError, setCreateError] = useState<string | null>(null);
 
   const onNavigate = (page: Page | "admin") => navigate(pageToPath(page));
-
-  const mapReview = (r: any): Review => ({
-    id: r.id,
-    author: r.author,
-    rating: r.rating,
-    date: new Date(r.created_at).toLocaleString("ru-RU"),
-    title: r.title,
-    text: r.content,
-    category: r.category,
-    isUserReview: false,
-    files: r.files || [],
-  });
 
   const fetchReviews = async () => {
     setReviewsLoading(true);
@@ -194,7 +199,7 @@ export default function App() {
       navigate("/my");
     } catch (e) {
       setCreateError(e instanceof Error ? e.message : "Ошибка");
-      throw e
+      throw e;
     } finally {
       setCreateLoading(false);
     }
@@ -214,87 +219,137 @@ export default function App() {
     setReviews((prev) => prev.filter((r) => r.id !== reviewId));
   };
 
-  if (loading) return <div className="p-6">Загрузка...</div>;
+  if (loading) {
+    return (
+      <HelmetProvider>
+        <div className="p-6">Загрузка...</div>
+      </HelmetProvider>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-[#f6fbf6]">
-      <Header
-        isLoggedIn={isLoggedIn}
-        isAdmin={isAdmin}
-        onNavigate={onNavigate}
-        onLogout={() => logout()}
-      />
+    <HelmetProvider>
+      <div className="min-h-screen bg-[#f6fbf6]">
+        <Header
+          isLoggedIn={isLoggedIn}
+          isAdmin={isAdmin}
+          onNavigate={onNavigate}
+          onLogout={() => logout()}
+        />
 
-      <main className="max-w-5xl mx-auto px-4 py-6">
-        {reviewsLoading && <div>Загрузка отзывов...</div>}
-        {reviewsError && <div className="text-red-600">Ошибка: {reviewsError}</div>}
+        <main className="max-w-5xl mx-auto px-4 py-6">
+          {reviewsLoading && <div>Загрузка отзывов...</div>}
+          {reviewsError && <div className="text-red-600">Ошибка: {reviewsError}</div>}
 
-        <Routes>
-          <Route path="/" element={<RecentReviews reviews={reviews} />} />
-          <Route path="/search" element={<SearchReview reviews={reviews} />} />
+          <Routes>
+            <Route path="/" element={<RecentReviews reviews={reviews} />} />
+            <Route path="/search" element={<SearchReview reviews={reviews} />} />
+            <Route path="/reviews/:id" element={<ReviewDetails />} />
 
-          <Route
-            path="/login"
-            element={
-              <LoginForm
-                onLogin={handleLogin}
-                loading={authLoading}
-                error={authError}
-              />
-            }
-          />
-          <Route
-            path="/register"
-            element={
-              <RegisterForm
-                onRegister={handleRegister}
-                loading={authLoading}
-                error={authError}
-              />
-            }
-          />
+            <Route
+              path="/login"
+              element={
+                <>
+                  <SeoHead
+                    title="Вход | GENTLECOMMENT"
+                    description="Страница входа."
+                    canonical={`${getFrontendUrl()}/login`}
+                    noindex
+                  />
+                  <LoginForm
+                    onLogin={handleLogin}
+                    loading={authLoading}
+                    error={authError}
+                  />
+                </>
+              }
+            />
 
-          <Route
-            path="/my"
-            element={
-              <RequireAuth isLoggedIn={isLoggedIn}>
-                <MyReviews
-                  reviews={userReviews}
-                  onNavigate={(p) => onNavigate(p)}
-                  onDeleteReview={handleDeleteReview}
-                  isAdmin={isAdmin}
-                />
-              </RequireAuth>
-            }
-          />
+            <Route
+              path="/register"
+              element={
+                <>
+                  <SeoHead
+                    title="Регистрация | GENTLECOMMENT"
+                    description="Страница регистрации."
+                    canonical={`${getFrontendUrl()}/register`}
+                    noindex
+                  />
+                  <RegisterForm
+                    onRegister={handleRegister}
+                    loading={authLoading}
+                    error={authError}
+                  />
+                </>
+              }
+            />
 
-          <Route
-            path="/create"
-            element={
-              <RequireAuth isLoggedIn={isLoggedIn}>
-                <CreateReview
-                  onCreateReview={handleCreateReview}
-                  loading={createLoading}
-                  error={createError}
-                />
-              </RequireAuth>
-            }
-          />
+            <Route
+              path="/my"
+              element={
+                <RequireAuth isLoggedIn={isLoggedIn}>
+                  <>
+                    <SeoHead
+                      title="Мои отзывы | GENTLECOMMENT"
+                      description="Личный кабинет пользователя."
+                      canonical={`${getFrontendUrl()}/my`}
+                      noindex
+                    />
+                    <MyReviews
+                      reviews={userReviews}
+                      onNavigate={(p) => onNavigate(p)}
+                      onDeleteReview={handleDeleteReview}
+                      isAdmin={isAdmin}
+                    />
+                  </>
+                </RequireAuth>
+              }
+            />
 
-          <Route
-            path="/admin/users"
-            element={
-              <RequireAuth isLoggedIn={isLoggedIn}>
-                <RequireRole role={role as Role} allowed={["admin"]}>
-                  <AdminUsers />
-                </RequireRole>
-              </RequireAuth>
-            }
-          />
+            <Route
+              path="/create"
+              element={
+                <RequireAuth isLoggedIn={isLoggedIn}>
+                  <>
+                    <SeoHead
+                      title="Создать отзыв | GENTLECOMMENT"
+                      description="Создание нового отзыва."
+                      canonical={`${getFrontendUrl()}/create`}
+                      noindex
+                    />
+                    <CreateReview
+                      onCreateReview={handleCreateReview}
+                      loading={createLoading}
+                      error={createError}
+                    />
+                  </>
+                </RequireAuth>
+              }
+            />
 
-          <Route path="*" element={<RecentReviews reviews={reviews} />} />
-        </Routes>
-      </main>
-    </div>
+            <Route
+              path="/admin/users"
+              element={
+                <RequireAuth isLoggedIn={isLoggedIn}>
+                  <RequireRole role={role as Role} allowed={["admin"]}>
+                    <>
+                      <SeoHead
+                        title="Админка | GENTLECOMMENT"
+                        description="Управление пользователями."
+                        canonical={`${getFrontendUrl()}/admin/users`}
+                        noindex
+                      />
+                      <AdminUsers />
+                    </>
+                  </RequireRole>
+                </RequireAuth>
+              }
+            />
+
+            <Route path="*" element={<RecentReviews reviews={reviews} />} />
+          </Routes>
+        </main>
+      </div>
+    </HelmetProvider>
   );
 }

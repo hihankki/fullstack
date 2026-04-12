@@ -5,12 +5,12 @@ from fastapi.staticfiles import StaticFiles
 from routes import auth, reviews
 from routes import admin as admin_routes
 from routes import files
+from routes import seo
+from routes import external
 
-app = FastAPI(title="MVP API (Access+Refresh)")
+app = FastAPI(title="MVP API (SEO + External API)")
 
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
-
-app.include_router(files.router, prefix="/api/files", tags=["files"])
 
 app.add_middleware(
     CORSMiddleware,
@@ -27,9 +27,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(seo.router, tags=["seo"])
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(reviews.router, prefix="/api/reviews", tags=["reviews"])
 app.include_router(admin_routes.router, prefix="/api/admin", tags=["admin"])
+app.include_router(files.router, prefix="/api/files", tags=["files"])
+app.include_router(external.router, prefix="/api/external", tags=["external"])
 
 
 @app.get("/api/health")

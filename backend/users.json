@@ -76,5 +76,11 @@
     "hashed_password": "$2b$12$g8AvJEzHt3eGr.DXxoKs8uAZwA7EL3z4pt5Clyah/cc34g.DPD4je",
     "role": "user",
     "display_name": "пукукпук"
+  },
+  "кпукрук": {
+    "username": "кпукрук",
+    "hashed_password": "$2b$12$tQbS9zEH3VhnWthdXtXtc.Yj0EOjmgj5ctcvObYdyR79taOQ2TXji",
+    "role": "user",
+    "display_name": "пакп"
   }
 }

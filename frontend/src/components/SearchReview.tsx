@@ -42,30 +42,55 @@ export function SearchReview({}: SearchReviewProps) {
   const [results, setResults] = useState<Review[]>([]);
   const [pages, setPages] = useState(1);
   const [selectedReview, setSelectedReview] = useState<Review | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const fetchReviews = async (customPage?: number) => {
+  const buildQuery = (customPage?: number) => {
+    const query = new URLSearchParams();
+
     const currentPage = customPage || page;
 
-    const query = new URLSearchParams({
-      q: searchQuery,
-      category,
-      author,
-      rating_min: ratingMin,
-      sort_by: sortBy,
-      order,
-      page: String(currentPage),
-      limit: "5",
-    });
+    if (searchQuery.trim()) query.set("q", searchQuery.trim());
+    if (category.trim()) query.set("category", category.trim());
+    if (author.trim()) query.set("author", author.trim());
+    if (ratingMin.trim()) query.set("rating_min", ratingMin.trim());
 
-    setParams(query);
+    query.set("sort_by", sortBy);
+    query.set("order", order);
+    query.set("page", String(currentPage));
+    query.set("limit", "5");
 
-    const res = await fetch(`${API_URL}/api/reviews/?${query.toString()}`, {
-      credentials: "include",
-    });
+    return query;
+  };
 
-    const data = await res.json();
-    setResults((data.items || []).map(mapReview));
-    setPages(data.pages || 1);
+  const fetchReviews = async (customPage?: number) => {
+    const query = buildQuery(customPage);
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      setParams(query);
+
+      const res = await fetch(`${API_URL}/api/reviews/?${query.toString()}`, {
+        credentials: "include",
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.detail || "Не удалось выполнить поиск");
+      }
+
+      const data = await res.json();
+      setResults((data.items || []).map(mapReview));
+      setPages(data.pages || 1);
+    } catch (e) {
+      setResults([]);
+      setPages(1);
+      setError(e instanceof Error ? e.message : "Ошибка поиска");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -119,6 +144,8 @@ export function SearchReview({}: SearchReviewProps) {
 
           <SimpleInput
             type="number"
+            min="1"
+            max="5"
             value={ratingMin}
             onChange={(e) => setRatingMin(e.target.value)}
             placeholder="Мин. рейтинг (1-5)"
@@ -153,6 +180,9 @@ export function SearchReview({}: SearchReviewProps) {
         </form>
       </div>
 
+      {loading && <p className="text-center text-gray-500 mb-4">Загрузка...</p>}
+      {error && <p className="text-center text-red-600 mb-4">{error}</p>}
+
       <div className="space-y-6">
         {results.length > 0 ? (
           results.map((review) => (
@@ -163,7 +193,7 @@ export function SearchReview({}: SearchReviewProps) {
             />
           ))
         ) : (
-          <p className="text-center text-gray-500">Отзывы не найдены</p>
+          !loading && <p className="text-center text-gray-500">Отзывы не найдены</p>
         )}
       </div>
 

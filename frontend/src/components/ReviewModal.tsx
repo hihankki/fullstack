@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Star } from "./Icons";
 import type { Review } from "../types";
 import { getApiUrl } from "../api/http";
@@ -50,7 +51,7 @@ export function ReviewModal({ review, onClose }: ReviewModalProps) {
             <span className="text-gray-500 ml-2">{review.date}</span>
           </div>
 
-          <h2 className="mb-4">{review.title}</h2>
+          <h2 className="mb-4 text-2xl font-semibold">{review.title}</h2>
 
           <p className="text-gray-700 mb-6 whitespace-pre-wrap leading-relaxed">
             {review.text}
@@ -86,11 +87,17 @@ export function ReviewModal({ review, onClose }: ReviewModalProps) {
             </div>
           )}
 
-          {(!review.files || review.files.length === 0) && (
-            <div className="mb-6 text-gray-500">Файлы не прикреплены</div>
-          )}
+          <div className="mb-6">
+            <Link
+              to={`/reviews/${review.id}`}
+              className="underline text-[#4a7c4a]"
+              onClick={onClose}
+            >
+              Открыть полную страницу отзыва
+            </Link>
+          </div>
 
-          <p className="text-gray-600">- {review.author}</p>
+          <p className="text-gray-600">— {review.author}</p>
         </div>
       </div>
     </div>

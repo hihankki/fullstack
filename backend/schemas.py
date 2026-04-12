@@ -60,3 +60,13 @@ class ReviewListResponse(BaseModel):
     total: int
     page: int
     pages: int
+
+
+class ExternalImageOut(BaseModel):
+    category: str
+    image_url: Optional[str] = None
+    thumb_url: Optional[str] = None
+    alt: str
+    author_name: Optional[str] = None
+    author_url: Optional[str] = None
+    source: str
