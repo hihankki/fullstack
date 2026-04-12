@@ -7,8 +7,7 @@ from typing import Any, Optional
 
 from jose import JWTError, jwt
 
-SECRET_KEY = "CHANGE_ME_SUPER_SECRET_KEY"
-ALGORITHM = "HS256"
+from config import SECRET_KEY, ALGORITHM
 
 
 def hash_token(token: str) -> str:
@@ -22,16 +21,12 @@ def create_access_token(subject: str, expires_minutes: int) -> str:
 
 
 def decode_access_token(token: str) -> dict[str, Any]:
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        sub: Optional[str] = payload.get("sub")
-        if not sub:
-            raise JWTError("No subject")
-        return payload
-    except JWTError as e:
-        raise e
+    payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    sub: Optional[str] = payload.get("sub")
+    if not sub:
+        raise JWTError("No subject")
+    return payload
 
 
 def create_refresh_token() -> str:
-    # криптостойкий случайный токен
     return secrets.token_urlsafe(48)

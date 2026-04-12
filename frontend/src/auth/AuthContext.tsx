@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { apiFetch, setAccessToken } from "../api/http";
+import { apiFetch, setAccessToken, getApiUrl } from "../api/http";
 
 type Role = "guest" | "user" | "admin";
 
@@ -15,7 +15,7 @@ type AuthState = {
 
 const AuthContext = createContext<AuthState | null>(null);
 
-const API_URL = "http://127.0.0.1:8000"; // если у тебя backend на 127.0.0.1 — поменяй везде одинаково
+const API_URL = getApiUrl();
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -27,23 +27,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoggedIn(false);
     setRole("guest");
     setFullName("Гость");
+    setAccessToken(null);
   };
 
-  // ✅ Важно: этот метод НЕ должен кидать исключения наружу и НЕ должен зависать
   const refreshMe = async () => {
     const res = await apiFetch("/api/auth/me");
     if (!res.ok) {
-      // 401/403 -> просто гость
       setGuest();
       return;
     }
+
     const data = await res.json();
     setIsLoggedIn(true);
     setRole((data.role as Role) ?? "user");
     setFullName(data.full_name ?? data.username);
   };
 
-  // ✅ Важно: loading всегда выключается, даже если /me = 401
   useEffect(() => {
     (async () => {
       try {
@@ -81,12 +80,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       method: "POST",
       credentials: "include",
     });
-    setAccessToken(null);
     setGuest();
   };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, role, fullName, loading, login, logout, refreshMe }}>
+    <AuthContext.Provider
+      value={{ isLoggedIn, role, fullName, loading, login, logout, refreshMe }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -3,15 +3,15 @@ import { Star } from "./Icons";
 import { SimpleButton } from "./SimpleButton";
 import { SimpleTextarea } from "./SimpleTextarea";
 import { SimpleInput } from "./SimpleInput";
+import { apiFetch } from "../api/http";
 
 type CreateReviewProps = {
   onCreateReview: (
     rating: number,
     title: string,
     text: string,
-    category: string,
-    file?: File | null
-  ) => void;
+    category: string
+  ) => Promise<void> | void;
   loading?: boolean;
   error?: string | null;
 };
@@ -39,24 +39,30 @@ export function CreateReview({
 
     if (loading) return;
 
-    // 🔥 если есть файл — сначала загружаем
-    if (file) {
-      const formData = new FormData();
-      formData.append("file", file);
+    await onCreateReview(rating, title, text, category);
 
-      try {
-        await fetch("http://127.0.0.1:8000/api/files/upload", {
-          method: "POST",
-          body: formData,
-        });
-      } catch (err) {
-        alert("Ошибка загрузки файла");
-        return;
+    if (file) {
+      const reviewsRes = await apiFetch("/api/reviews?sort_by=id&order=desc&page=1&limit=1");
+      if (reviewsRes.ok) {
+        const data = await reviewsRes.json();
+        const latestReview = data.items?.[0];
+
+        if (latestReview) {
+          const formData = new FormData();
+          formData.append("file", file);
+
+          const uploadRes = await apiFetch(`/api/reviews/${latestReview.id}/files`, {
+            method: "POST",
+            body: formData,
+          });
+
+          if (!uploadRes.ok) {
+            const uploadData = await uploadRes.json().catch(() => null);
+            alert(uploadData?.detail || "Ошибка загрузки файла");
+          }
+        }
       }
     }
-
-    // затем создаём отзыв
-    onCreateReview(rating, title, text, category, file);
   };
 
   return (
@@ -67,7 +73,6 @@ export function CreateReview({
         {error && <p className="mb-4 text-sm text-red-500">{error}</p>}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* КАТЕГОРИЯ */}
           <div>
             <label className="block mb-3">Категория</label>
             <div className="flex flex-wrap gap-2">
@@ -88,7 +93,6 @@ export function CreateReview({
             </div>
           </div>
 
-          {/* ОЦЕНКА */}
           <div>
             <label className="block mb-3">Оценка</label>
             <div className="flex gap-2">
@@ -111,7 +115,6 @@ export function CreateReview({
             </div>
           </div>
 
-          {/* НАЗВАНИЕ */}
           <div>
             <label className="block mb-3">Название</label>
             <SimpleInput
@@ -124,7 +127,6 @@ export function CreateReview({
             />
           </div>
 
-          {/* ТЕКСТ */}
           <div>
             <label className="block mb-3">Текст отзыва</label>
             <SimpleTextarea
@@ -136,7 +138,6 @@ export function CreateReview({
             />
           </div>
 
-          {/* 🔥 ФАЙЛ */}
           <div>
             <label className="block mb-2">Прикрепить файл</label>
             <input
@@ -146,7 +147,6 @@ export function CreateReview({
             />
           </div>
 
-          {/* КНОПКА */}
           <SimpleButton type="submit" className="w-full" disabled={loading}>
             {loading ? "Сохраняем..." : "Опубликовать отзыв"}
           </SimpleButton>

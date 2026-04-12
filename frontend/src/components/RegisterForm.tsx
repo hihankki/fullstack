@@ -14,12 +14,12 @@ export function RegisterForm({
   error,
 }: RegisterFormProps) {
   const [name, setName] = useState("");
-  const [email, setEmail] = useState(""); // username
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onRegister(email, password, name);
+    onRegister(username, password, name);
   };
 
   return (
@@ -41,11 +41,11 @@ export function RegisterForm({
             />
           </div>
           <div>
-            <label className="block mb-2">Логин (username / email)</label>
+            <label className="block mb-2">Логин</label>
             <SimpleInput
               type="text"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               required
               className="w-full"
             />

@@ -2,10 +2,9 @@ from __future__ import annotations
 
 from datetime import datetime
 from typing import Optional
+
 from pydantic import BaseModel, Field
 
-
-# ---------- Auth ----------
 
 class RegisterRequest(BaseModel):
     username: str = Field(..., min_length=3, max_length=32)
@@ -19,21 +18,29 @@ class Token(BaseModel):
 
 
 class RoleUpdate(BaseModel):
-    role: str = Field(..., min_length=4, max_length=10)  # "user" | "admin"
+    role: str = Field(..., min_length=4, max_length=10)
 
-
-# ---------- Reviews ----------
 
 class ReviewCreate(BaseModel):
     title: str = Field(..., min_length=1, max_length=200)
     content: str = Field(..., min_length=1, max_length=5000)
     rating: int = Field(..., ge=1, le=5)
+    category: str = Field(..., min_length=2, max_length=50)
 
 
 class ReviewUpdate(BaseModel):
     title: Optional[str] = Field(None, max_length=200)
     content: Optional[str] = Field(None, max_length=5000)
     rating: Optional[int] = Field(None, ge=1, le=5)
+    category: Optional[str] = Field(None, min_length=2, max_length=50)
+
+
+class ReviewFileOut(BaseModel):
+    id: int
+    filename: str
+    content_type: str
+    size: int
+    created_at: str
 
 
 class ReviewOut(BaseModel):
@@ -41,6 +48,15 @@ class ReviewOut(BaseModel):
     title: str
     content: str
     rating: int
+    category: str
     author: str
     created_at: datetime
     updated_at: datetime
+    files: list[ReviewFileOut] = []
+
+
+class ReviewListResponse(BaseModel):
+    items: list[ReviewOut]
+    total: int
+    page: int
+    pages: int

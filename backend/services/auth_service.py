@@ -19,9 +19,14 @@ class AuthService:
         if self.users_repo.exists(username):
             raise HTTPException(status_code=400, detail="Пользователь уже существует")
 
-        role = "admin" if username == "admin" else "user"
+        role = "user"
+
         if len(password.encode("utf-8")) > 72:
-            raise HTTPException(status_code=400, detail="Пароль слишком длинный (bcrypt максимум 72 байта)")
+            raise HTTPException(
+                status_code=400,
+                detail="Пароль слишком длинный (bcrypt максимум 72 байта)",
+            )
+
         hashed = get_password_hash(password)
         self.users_repo.create(username, hashed, role, full_name)
         return {"success": True, "role": role}
@@ -30,22 +35,41 @@ class AuthService:
         username = username.strip()
         user = self.users_repo.get_by_username(username)
         if not user or not verify_password(password, user["hashed_password"]):
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Неверный логин или пароль")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Неверный логин или пароль",
+            )
 
-        access = create_access_token(subject=username, expires_minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        access = create_access_token(
+            subject=username,
+            expires_minutes=ACCESS_TOKEN_EXPIRE_MINUTES,
+        )
         refresh = create_refresh_token()
-        self.refresh_repo.create(refresh, username=username, ttl_days=REFRESH_TOKEN_EXPIRE_DAYS)
+        self.refresh_repo.create(
+            refresh,
+            username=username,
+            ttl_days=REFRESH_TOKEN_EXPIRE_DAYS,
+        )
         return access, refresh
 
     def refresh(self, old_refresh: str) -> tuple[str, str]:
         session = self.refresh_repo.get(old_refresh)
         if not session or not self.refresh_repo.is_valid(session):
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token недействителен")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Refresh token недействителен",
+            )
 
-        # РОТАЦИЯ: старый отзываем и выдаём новый
-        new_access = create_access_token(subject=session.username, expires_minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        new_access = create_access_token(
+            subject=session.username,
+            expires_minutes=ACCESS_TOKEN_EXPIRE_MINUTES,
+        )
         new_refresh = create_refresh_token()
-        self.refresh_repo.create(new_refresh, username=session.username, ttl_days=REFRESH_TOKEN_EXPIRE_DAYS)
+        self.refresh_repo.create(
+            new_refresh,
+            username=session.username,
+            ttl_days=REFRESH_TOKEN_EXPIRE_DAYS,
+        )
         self.refresh_repo.revoke(old_refresh, replaced_by_raw=new_refresh)
 
         return new_access, new_refresh

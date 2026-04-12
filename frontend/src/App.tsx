@@ -13,9 +13,11 @@ import { AdminUsers } from "./pages/AdminUsers";
 
 import type { Review, Page } from "./types";
 import { useAuth } from "./auth/AuthContext";
-import { apiFetch } from "./api/http";
+import { apiFetch, getApiUrl } from "./api/http";
 
 type Role = "guest" | "user" | "admin";
+
+const API_URL = getApiUrl();
 
 function pageToPath(page: Page | "admin"): string {
   switch (page) {
@@ -55,24 +57,31 @@ export default function App() {
 
   const onNavigate = (page: Page | "admin") => navigate(pageToPath(page));
 
+  const mapReview = (r: any): Review => ({
+    id: r.id,
+    author: r.author,
+    rating: r.rating,
+    date: new Date(r.created_at).toLocaleString("ru-RU"),
+    title: r.title,
+    text: r.content,
+    category: r.category,
+    isUserReview: false,
+    files: r.files || [],
+  });
+
   const fetchReviews = async () => {
     setReviewsLoading(true);
     setReviewsError(null);
-    try {
-      const res = await fetch(`http://localhost:8000/api/reviews/`);
-      if (!res.ok) throw new Error("Не удалось загрузить отзывы");
-      const data = await res.json();
 
-      const mapped: Review[] = data.map((r: any) => ({
-        id: r.id,
-        author: r.author,
-        rating: r.rating,
-        date: new Date(r.created_at).toLocaleString("ru-RU"),
-        title: r.title,
-        text: r.content,
-        category: "Другое",
-        isUserReview: false,
-      }));
+    try {
+      const res = await fetch(`${API_URL}/api/reviews/`, {
+        credentials: "include",
+      });
+
+      if (!res.ok) throw new Error("Не удалось загрузить отзывы");
+
+      const data = await res.json();
+      const mapped: Review[] = (data.items || []).map(mapReview);
       setReviews(mapped);
     } catch (e) {
       setReviewsError(e instanceof Error ? e.message : "Ошибка");
@@ -94,11 +103,15 @@ export default function App() {
     );
   }, [fullName, isAdmin]);
 
-  const userReviews = useMemo(() => (isAdmin ? reviews : reviews.filter((r) => r.isUserReview)), [reviews, isAdmin]);
+  const userReviews = useMemo(
+    () => (isAdmin ? reviews : reviews.filter((r) => r.isUserReview)),
+    [reviews, isAdmin]
+  );
 
   const handleLogin = async (username: string, password: string) => {
     setAuthLoading(true);
     setAuthError(null);
+
     try {
       await login(username, password);
       navigate("/my");
@@ -109,20 +122,31 @@ export default function App() {
     }
   };
 
-  const handleRegister = async (username: string, password: string, fullNameReg: string) => {
+  const handleRegister = async (
+    username: string,
+    password: string,
+    fullNameReg: string
+  ) => {
     setAuthLoading(true);
     setAuthError(null);
+
     try {
-      const res = await fetch("http://localhost:8000/api/auth/register", {
+      const res = await fetch(`${API_URL}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password, full_name: fullNameReg }),
+        body: JSON.stringify({
+          username,
+          password,
+          full_name: fullNameReg,
+        }),
         credentials: "include",
       });
+
       if (!res.ok) {
         const data = await res.json().catch(() => null);
         throw new Error(data?.detail || "Ошибка регистрации");
       }
+
       await login(username, password);
       navigate("/my");
     } catch (e) {
@@ -132,14 +156,20 @@ export default function App() {
     }
   };
 
-  const handleCreateReview = async (rating: number, title: string, text: string) => {
+  const handleCreateReview = async (
+    rating: number,
+    title: string,
+    text: string,
+    category: string
+  ) => {
     setCreateLoading(true);
     setCreateError(null);
+
     try {
       const res = await apiFetch("/api/reviews/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, content: text, rating }),
+        body: JSON.stringify({ title, content: text, rating, category }),
       });
 
       if (!res.ok) {
@@ -155,25 +185,32 @@ export default function App() {
         date: new Date(data.created_at).toLocaleString("ru-RU"),
         title: data.title,
         text: data.content,
-        category: "Другое",
+        category: data.category,
         isUserReview: true,
+        files: data.files || [],
       };
+
       setReviews((prev) => [newReview, ...prev]);
       navigate("/my");
     } catch (e) {
       setCreateError(e instanceof Error ? e.message : "Ошибка");
+      throw e
     } finally {
       setCreateLoading(false);
     }
   };
 
   const handleDeleteReview = async (reviewId: number) => {
-    const res = await apiFetch(`/api/reviews/${reviewId}`, { method: "DELETE" });
+    const res = await apiFetch(`/api/reviews/${reviewId}`, {
+      method: "DELETE",
+    });
+
     if (!res.ok) {
       const data = await res.json().catch(() => null);
       alert(data?.detail || "Не удалось удалить");
       return;
     }
+
     setReviews((prev) => prev.filter((r) => r.id !== reviewId));
   };
 
@@ -181,7 +218,12 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#f6fbf6]">
-      <Header isLoggedIn={isLoggedIn} isAdmin={isAdmin} onNavigate={onNavigate} onLogout={() => logout()} />
+      <Header
+        isLoggedIn={isLoggedIn}
+        isAdmin={isAdmin}
+        onNavigate={onNavigate}
+        onLogout={() => logout()}
+      />
 
       <main className="max-w-5xl mx-auto px-4 py-6">
         {reviewsLoading && <div>Загрузка отзывов...</div>}
@@ -191,17 +233,37 @@ export default function App() {
           <Route path="/" element={<RecentReviews reviews={reviews} />} />
           <Route path="/search" element={<SearchReview reviews={reviews} />} />
 
-          <Route path="/login" element={<LoginForm onLogin={handleLogin} loading={authLoading} error={authError} />} />
+          <Route
+            path="/login"
+            element={
+              <LoginForm
+                onLogin={handleLogin}
+                loading={authLoading}
+                error={authError}
+              />
+            }
+          />
           <Route
             path="/register"
-            element={<RegisterForm onRegister={handleRegister} loading={authLoading} error={authError} />}
+            element={
+              <RegisterForm
+                onRegister={handleRegister}
+                loading={authLoading}
+                error={authError}
+              />
+            }
           />
 
           <Route
             path="/my"
             element={
               <RequireAuth isLoggedIn={isLoggedIn}>
-                <MyReviews reviews={userReviews} onNavigate={(p) => onNavigate(p)} onDeleteReview={handleDeleteReview} isAdmin={isAdmin} />
+                <MyReviews
+                  reviews={userReviews}
+                  onNavigate={(p) => onNavigate(p)}
+                  onDeleteReview={handleDeleteReview}
+                  isAdmin={isAdmin}
+                />
               </RequireAuth>
             }
           />
@@ -210,7 +272,11 @@ export default function App() {
             path="/create"
             element={
               <RequireAuth isLoggedIn={isLoggedIn}>
-                <CreateReview onCreateReview={handleCreateReview} loading={createLoading} error={createError} />
+                <CreateReview
+                  onCreateReview={handleCreateReview}
+                  loading={createLoading}
+                  error={createError}
+                />
               </RequireAuth>
             }
           />

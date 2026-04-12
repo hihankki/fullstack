@@ -22,5 +22,59 @@
     "hashed_password": "$2b$12$A/G5Bzv9Hvb0o8XwVNaTy.oYuZveIvTDL/z4T4aHq6d/szUiPdLd2",
     "role": "user",
     "display_name": "kfv rfv rf"
+  },
+  "1234567": {
+    "username": "1234567",
+    "hashed_password": "$2b$12$i.RGTbqdsyhC1gUMkRDFPOt2cANLZsgyrJ6OP3l8zgKV1bEb2QUOm",
+    "role": "user",
+    "display_name": "кккк"
+  },
+  "йцукен": {
+    "username": "йцукен",
+    "hashed_password": "$2b$12$wosFnkAQfCwHaKRAflfd4OjkkcX4xC/KOX6q3QIKnWFFtuuK7zeIS",
+    "role": "user",
+    "display_name": " с сч ч"
+  },
+  "кп тулкпт": {
+    "username": "кп тулкпт",
+    "hashed_password": "$2b$12$Ult4i94j23RA46j5JnXIOudrJq3p3r6nF2aFGubwgfyN2zGFoYHWe",
+    "role": "user",
+    "display_name": "колплукоп"
+  },
+  "12345678": {
+    "username": "12345678",
+    "hashed_password": "$2b$12$x4Lj6XKs4M86saklyQ1kEuZxyCIJG47axY8y6tWVq5snRRQ7yRY8O",
+    "role": "user",
+    "display_name": "dsvsvsdthtr"
+  },
+  "123апврв": {
+    "username": "123апврв",
+    "hashed_password": "$2b$12$S5bJf78qErdk6dFaJ5ZWM.yGw410t7U2Mmvx7wTzoo/FppCSeij2i",
+    "role": "user",
+    "display_name": "екркр"
+  },
+  "а пав па": {
+    "username": "а пав па",
+    "hashed_password": "$2b$12$QbB2ffOWTfS9ZetaS99DW.aU.PTIwzOcNS0T7vMl.nIdJse337D4i",
+    "role": "user",
+    "display_name": " вавы пва "
+  },
+  "пыпвыпа": {
+    "username": "пыпвыпа",
+    "hashed_password": "$2b$12$tTpmWYwPvJPhtb8FjWZ4POZwFf7/N6nlUDyMc8ZcsOsO.xPRdWvc.",
+    "role": "user",
+    "display_name": "выавы"
+  },
+  "gerge": {
+    "username": "gerge",
+    "hashed_password": "$2b$12$t9gTr9vmmCp0m8LX8JUQ7elTrENHXRmxMl5t8DkwzIt5ucuI7MnNm",
+    "role": "user",
+    "display_name": "ergr"
+  },
+  "пупукпавпв": {
+    "username": "пупукпавпв",
+    "hashed_password": "$2b$12$g8AvJEzHt3eGr.DXxoKs8uAZwA7EL3z4pt5Clyah/cc34g.DPD4je",
+    "role": "user",
+    "display_name": "пукукпук"
   }
 }

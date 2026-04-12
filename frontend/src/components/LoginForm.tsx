@@ -9,12 +9,12 @@ type LoginFormProps = {
 };
 
 export function LoginForm({ onLogin, loading, error }: LoginFormProps) {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onLogin(email, password); // email используем как username
+    onLogin(username, password);
   };
 
   return (
@@ -26,11 +26,11 @@ export function LoginForm({ onLogin, loading, error }: LoginFormProps) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block mb-2">Логин (username / email)</label>
+            <label className="block mb-2">Логин</label>
             <SimpleInput
               type="text"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               required
               className="w-full"
             />
