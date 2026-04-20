@@ -9,6 +9,7 @@ type ReviewCardProps = {
   title: string;
   text: string;
   category: string;
+  city: string;
   isUserReview?: boolean;
   onDelete?: () => void;
   onClick?: () => void;
@@ -28,6 +29,7 @@ export function ReviewCard({
   title,
   text,
   category,
+  city,
   isUserReview,
   onDelete,
   onClick,
@@ -42,6 +44,7 @@ export function ReviewCard({
           <span className="inline-block px-4 py-1 rounded-full bg-[#edf5ed] text-sm text-gray-700">
             {category}
           </span>
+          <span className="text-sm text-gray-500">Город: {city}</span>
           <div className="flex items-center gap-1" aria-label={`Оценка ${rating} из 5`}>
             {Array.from({ length: 5 }).map((_, index) => (
               <Star

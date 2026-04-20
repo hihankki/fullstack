@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { apiFetch, getApiUrl, getFrontendUrl } from "../api/http";
+import { getApiUrl, getFrontendUrl } from "../api/http";
 import { SeoHead } from "../seo/SeoHead";
-import { ExternalHeroImage } from "../components/ExternalHeroImage";
+import { ExternalWeather } from "../components/ExternalWeather";
 import type { Review } from "../types";
 import { Star } from "../components/Icons";
 
@@ -17,7 +17,9 @@ function mapReview(r: any): Review {
     title: r.title,
     text: r.content,
     category: r.category,
+    city: r.city,
     files: r.files || [],
+    file_url: r.file_url || null,
   };
 }
 
@@ -149,7 +151,7 @@ export function ReviewDetails() {
     );
   }
 
-  const description = `${review.title} — отзыв категории ${review.category}, оценка ${review.rating}/5.`;
+  const description = `${review.title} — отзыв категории ${review.category}, город ${review.city}, оценка ${review.rating}/5.`;
 
   return (
     <article className="max-w-4xl mx-auto">
@@ -166,12 +168,13 @@ export function ReviewDetails() {
           <span className="px-3 py-1 rounded-full bg-[#edf5ed]">
             {review.category}
           </span>
+          <span>Город: {review.city}</span>
           <span>Автор: {review.author}</span>
           <span>{review.date}</span>
         </div>
       </header>
 
-      <ExternalHeroImage category={review.category} title={review.title} />
+      <ExternalWeather city={review.city} />
 
       <section className="bg-white rounded-xl border border-[#c5d9c5] p-6 mb-6">
         <h2 className="text-xl font-semibold mb-4">Оценка</h2>
@@ -197,7 +200,20 @@ export function ReviewDetails() {
       </section>
 
       <section className="bg-white rounded-xl border border-[#c5d9c5] p-6">
-        <h2 className="text-xl font-semibold mb-4">Прикреплённые файлы</h2>
+        <h2 className="text-xl font-semibold mb-4">Файлы</h2>
+
+        {review.file_url && (
+          <div className="mb-4">
+            <a
+              href={review.file_url}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-block px-3 py-2 rounded-lg bg-[#7fb87f] text-white hover:bg-[#6ba66b]"
+            >
+              Открыть файл из MinIO
+            </a>
+          </div>
+        )}
 
         {review.files && review.files.length > 0 ? (
           <div className="space-y-3">
@@ -223,9 +239,9 @@ export function ReviewDetails() {
               </div>
             ))}
           </div>
-        ) : (
+        ) : !review.file_url ? (
           <p className="text-gray-500">Файлы не прикреплены.</p>
-        )}
+        ) : null}
       </section>
     </article>
   );

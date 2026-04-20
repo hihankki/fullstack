@@ -26,6 +26,8 @@ class ReviewCreate(BaseModel):
     content: str = Field(..., min_length=1, max_length=5000)
     rating: int = Field(..., ge=1, le=5)
     category: str = Field(..., min_length=2, max_length=50)
+    city: str = Field(..., min_length=2, max_length=100)
+    file_url: Optional[str] = None
 
 
 class ReviewUpdate(BaseModel):
@@ -33,6 +35,8 @@ class ReviewUpdate(BaseModel):
     content: Optional[str] = Field(None, max_length=5000)
     rating: Optional[int] = Field(None, ge=1, le=5)
     category: Optional[str] = Field(None, min_length=2, max_length=50)
+    city: Optional[str] = Field(None, min_length=2, max_length=100)
+    file_url: Optional[str] = None
 
 
 class ReviewFileOut(BaseModel):
@@ -49,9 +53,11 @@ class ReviewOut(BaseModel):
     content: str
     rating: int
     category: str
+    city: str
     author: str
     created_at: datetime
     updated_at: datetime
+    file_url: Optional[str] = None
     files: list[ReviewFileOut] = []
 
 
@@ -62,11 +68,11 @@ class ReviewListResponse(BaseModel):
     pages: int
 
 
-class ExternalImageOut(BaseModel):
-    category: str
-    image_url: Optional[str] = None
-    thumb_url: Optional[str] = None
-    alt: str
-    author_name: Optional[str] = None
-    author_url: Optional[str] = None
+class ExternalWeatherOut(BaseModel):
+    city: str
+    resolved_name: Optional[str] = None
+    country: Optional[str] = None
+    temperature: Optional[float] = None
+    wind_speed: Optional[float] = None
+    weather_code: Optional[int] = None
     source: str

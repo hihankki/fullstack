@@ -52,8 +52,10 @@ function mapReview(r: any): Review {
     title: r.title,
     text: r.content,
     category: r.category,
+    city: r.city,
     isUserReview: false,
     files: r.files || [],
+    file_url: r.file_url || null,
   };
 }
 
@@ -165,7 +167,9 @@ export default function App() {
     rating: number,
     title: string,
     text: string,
-    category: string
+    category: string,
+    city: string,
+    fileUrl?: string | null
   ) => {
     setCreateLoading(true);
     setCreateError(null);
@@ -174,7 +178,14 @@ export default function App() {
       const res = await apiFetch("/api/reviews/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, content: text, rating, category }),
+        body: JSON.stringify({
+          title,
+          content: text,
+          rating,
+          category,
+          city,
+          file_url: fileUrl ?? null,
+        }),
       });
 
       if (!res.ok) {
@@ -191,8 +202,10 @@ export default function App() {
         title: data.title,
         text: data.content,
         category: data.category,
+        city: data.city,
         isUserReview: true,
         files: data.files || [],
+        file_url: data.file_url || null,
       };
 
       setReviews((prev) => [newReview, ...prev]);

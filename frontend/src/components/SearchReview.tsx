@@ -23,8 +23,10 @@ function mapReview(r: any): Review {
     title: r.title,
     text: r.content,
     category: r.category,
+    city: r.city,
     isUserReview: false,
     files: r.files || [],
+    file_url: r.file_url || null,
   };
 }
 
@@ -33,6 +35,7 @@ export function SearchReview({}: SearchReviewProps) {
 
   const [searchQuery, setSearchQuery] = useState(params.get("q") || "");
   const [category, setCategory] = useState(params.get("category") || "");
+  const [city, setCity] = useState(params.get("city") || "");
   const [author, setAuthor] = useState(params.get("author") || "");
   const [ratingMin, setRatingMin] = useState(params.get("rating_min") || "");
   const [sortBy, setSortBy] = useState(params.get("sort_by") || "id");
@@ -52,6 +55,7 @@ export function SearchReview({}: SearchReviewProps) {
 
     if (searchQuery.trim()) query.set("q", searchQuery.trim());
     if (category.trim()) query.set("category", category.trim());
+    if (city.trim()) query.set("city", city.trim());
     if (author.trim()) query.set("author", author.trim());
     if (ratingMin.trim()) query.set("rating_min", ratingMin.trim());
 
@@ -143,6 +147,13 @@ export function SearchReview({}: SearchReviewProps) {
           />
 
           <SimpleInput
+            type="text"
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+            placeholder="Город"
+          />
+
+          <SimpleInput
             type="number"
             min="1"
             max="5"
@@ -161,6 +172,7 @@ export function SearchReview({}: SearchReviewProps) {
             <option value="rating">Рейтинг</option>
             <option value="author">Автор</option>
             <option value="category">Категория</option>
+            <option value="city">Город</option>
             <option value="created_at">Дата создания</option>
           </select>
 

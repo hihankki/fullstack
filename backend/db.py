@@ -8,8 +8,6 @@ from typing import Dict, List, Optional
 from repositories.files_repo import get_files_by_review
 from schemas import ReviewOut, ReviewCreate, ReviewUpdate, ReviewFileOut
 
-# ---------- USERS (persist to json) ----------
-
 USERS_FILE = Path(__file__).resolve().parent / "users.json"
 
 users_db: Dict[str, dict] = {}
@@ -34,8 +32,6 @@ def save_users() -> None:
 
 
 load_users()
-
-# ---------- REVIEWS (in-memory) ----------
 
 reviews_db: Dict[int, ReviewOut] = {}
 _current_review_id = 0
@@ -74,13 +70,15 @@ def create_review(data: ReviewCreate, author: str) -> ReviewOut:
         content=data.content,
         rating=data.rating,
         category=data.category,
+        city=data.city,
         author=author,
         created_at=now,
         updated_at=now,
+        file_url=data.file_url,
         files=[],
     )
     reviews_db[new_id] = review
-    return review
+    return _review_with_files(review)
 
 
 def get_review(review_id: int) -> Optional[ReviewOut]:
@@ -109,6 +107,10 @@ def update_review(review_id: int, data: ReviewUpdate) -> Optional[ReviewOut]:
         updated_data["rating"] = data.rating
     if data.category is not None:
         updated_data["category"] = data.category
+    if data.city is not None:
+        updated_data["city"] = data.city
+    if data.file_url is not None:
+        updated_data["file_url"] = data.file_url
 
     updated_data["updated_at"] = datetime.utcnow()
 

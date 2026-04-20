@@ -3,14 +3,15 @@ import { Star } from "./Icons";
 import { SimpleButton } from "./SimpleButton";
 import { SimpleTextarea } from "./SimpleTextarea";
 import { SimpleInput } from "./SimpleInput";
-import { apiFetch } from "../api/http";
 
 type CreateReviewProps = {
   onCreateReview: (
     rating: number,
     title: string,
     text: string,
-    category: string
+    category: string,
+    city: string,
+    fileUrl?: string | null
   ) => Promise<void> | void;
   loading?: boolean;
   error?: string | null;
@@ -27,7 +28,9 @@ export function CreateReview({
   const [title, setTitle] = useState("");
   const [text, setText] = useState("");
   const [category, setCategory] = useState(categories[0]);
+  const [city, setCity] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,32 +40,43 @@ export function CreateReview({
       return;
     }
 
-    if (loading) return;
+    if (!city.trim()) {
+      alert("Пожалуйста, укажите город");
+      return;
+    }
 
-    await onCreateReview(rating, title, text, category);
+    if (loading || uploading) return;
+
+    let fileUrl: string | null = null;
 
     if (file) {
-      const reviewsRes = await apiFetch("/api/reviews?sort_by=id&order=desc&page=1&limit=1");
-      if (reviewsRes.ok) {
-        const data = await reviewsRes.json();
-        const latestReview = data.items?.[0];
+      const formData = new FormData();
+      formData.append("file", file);
 
-        if (latestReview) {
-          const formData = new FormData();
-          formData.append("file", file);
+      try {
+        setUploading(true);
 
-          const uploadRes = await apiFetch(`/api/reviews/${latestReview.id}/files`, {
-            method: "POST",
-            body: formData,
-          });
+        const res = await fetch("http://127.0.0.1:8000/api/files/upload", {
+          method: "POST",
+          body: formData,
+        });
 
-          if (!uploadRes.ok) {
-            const uploadData = await uploadRes.json().catch(() => null);
-            alert(uploadData?.detail || "Ошибка загрузки файла");
-          }
+        if (!res.ok) {
+          const data = await res.json().catch(() => null);
+          throw new Error(data?.detail || "Ошибка загрузки файла");
         }
+
+        const data = await res.json();
+        fileUrl = data.url ?? null;
+      } catch (err) {
+        alert(err instanceof Error ? err.message : "Ошибка загрузки файла");
+        return;
+      } finally {
+        setUploading(false);
       }
     }
+
+    await onCreateReview(rating, title, text, category, city.trim(), fileUrl);
   };
 
   return (
@@ -91,6 +105,18 @@ export function CreateReview({
                 </button>
               ))}
             </div>
+          </div>
+
+          <div>
+            <label className="block mb-3">Город</label>
+            <SimpleInput
+              type="text"
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              required
+              placeholder="Например: Riga"
+              className="w-full"
+            />
           </div>
 
           <div>
@@ -145,10 +171,23 @@ export function CreateReview({
               onChange={(e) => setFile(e.target.files?.[0] || null)}
               className="w-full"
             />
+            {file && (
+              <p className="mt-2 text-sm text-gray-600">
+                Выбран файл: {file.name}
+              </p>
+            )}
           </div>
 
-          <SimpleButton type="submit" className="w-full" disabled={loading}>
-            {loading ? "Сохраняем..." : "Опубликовать отзыв"}
+          <SimpleButton
+            type="submit"
+            className="w-full"
+            disabled={loading || uploading}
+          >
+            {uploading
+              ? "Загружаем файл..."
+              : loading
+              ? "Сохраняем..."
+              : "Опубликовать отзыв"}
           </SimpleButton>
         </form>
       </div>

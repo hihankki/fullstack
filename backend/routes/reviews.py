@@ -23,7 +23,7 @@ router = APIRouter()
 UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-ALLOWED_SORT_FIELDS = {"id", "title", "rating", "author", "category", "created_at", "updated_at"}
+ALLOWED_SORT_FIELDS = {"id", "title", "rating", "author", "category", "city", "created_at", "updated_at"}
 ALLOWED_ORDER_VALUES = {"asc", "desc"}
 ALLOWED_CONTENT_TYPES = {"image/png", "image/jpeg", "application/pdf"}
 MAX_FILE_SIZE = 2 * 1024 * 1024
@@ -33,6 +33,7 @@ MAX_FILE_SIZE = 2 * 1024 * 1024
 async def get_reviews_endpoint(
     q: Optional[str] = None,
     category: Optional[str] = None,
+    city: Optional[str] = None,
     author: Optional[str] = None,
     rating_min: Optional[int] = Query(None, ge=1, le=5),
     rating_max: Optional[int] = Query(None, ge=1, le=5),
@@ -51,11 +52,16 @@ async def get_reviews_endpoint(
             or q_lower in r.author.lower()
             or q_lower in r.title.lower()
             or q_lower in r.category.lower()
+            or q_lower in r.city.lower()
         ]
 
     if category:
         category_lower = category.lower()
         data = [r for r in data if r.category.lower() == category_lower]
+
+    if city:
+        city_lower = city.lower()
+        data = [r for r in data if city_lower in r.city.lower()]
 
     if author:
         author_lower = author.lower()

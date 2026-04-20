@@ -37,6 +37,8 @@ export function ReviewModal({ review, onClose }: ReviewModalProps) {
         </div>
 
         <div className="p-6">
+          <div className="mb-3 text-sm text-gray-500">Город: {review.city}</div>
+
           <div className="flex items-center gap-2 mb-4">
             {[...Array(5)].map((_, i) => (
               <Star
@@ -56,6 +58,19 @@ export function ReviewModal({ review, onClose }: ReviewModalProps) {
           <p className="text-gray-700 mb-6 whitespace-pre-wrap leading-relaxed">
             {review.text}
           </p>
+
+          {review.file_url && (
+            <div className="mb-6">
+              <a
+                href={review.file_url}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-block px-3 py-2 rounded-lg bg-[#7fb87f] text-white hover:bg-[#6ba66b]"
+              >
+                Открыть файл из хранилища
+              </a>
+            </div>
+          )}
 
           {review.files && review.files.length > 0 && (
             <div className="mb-6">
